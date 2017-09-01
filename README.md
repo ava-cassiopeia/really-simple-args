@@ -1,7 +1,21 @@
 # Really Simple Args
 
+[![npm version](https://badge.fury.io/js/really-simple-args.svg)](https://badge.fury.io/js/really-simple-args)
+
 NPM/Node CommonJS module for automatically sorting and managing command-line 
 arguments for your command line tool.
+
+---
+
+  - [Installation](#installation)
+  - [Simple Usage](#simple-usage)
+  - [Usage](#usage)
+    - [Get Argument by Index](#get-argument-by-index)
+    - [Get Amount of Arguments](#get-amount-of-arguments)
+    - [Determine if Flag Exists](#determine-if-flag-exists)
+    - [Determine if Parameter Exists](#determine-if-parameter-exists)
+    - [Get Parameter Value](#get-parameter-value)
+  - [Argument vs Parameter vs Flag](#argument-vs-parameter-vs-flag)
 
 ## Installation
 
@@ -9,6 +23,25 @@ To install, simply run:
 
 ```CLI
 npm i really-simple-args
+```
+
+## Simple Usage
+
+Below is a simple example of what you can do with this code. See the 
+[usage section](#usage) for more information.
+
+```Javascript
+const args = require("really-simple-args")();
+
+if(args.hasFlag("my-flag")) {
+    // do something when --my-flag is passed
+}
+
+if(args.hasParameter("p")) {
+    const pValue = args.getParameter("p");
+
+    // do something with pValue, which was passed with -p
+}
 ```
 
 ## Usage

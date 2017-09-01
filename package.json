@@ -1,6 +1,6 @@
 {
   "name": "really-simple-args",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Module for easily accessing arguments, parameters, and flags for your CLI tool",
   "main": "index.js",
   "scripts": {
