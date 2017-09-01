@@ -1,0 +1,25 @@
+{
+  "name": "really-simple-args",
+  "version": "1.0.0",
+  "description": "Module for easily accessing arguments, parameters, and flags for your CLI tool",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aeolingamenfel/really-simple-args.git"
+  },
+  "keywords": [
+    "cli",
+    "flags",
+    "arguments",
+    "parameters"
+  ],
+  "author": "Ivan Mattie",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aeolingamenfel/really-simple-args/issues"
+  },
+  "homepage": "https://github.com/aeolingamenfel/really-simple-args#readme"
+}
