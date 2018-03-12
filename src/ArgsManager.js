@@ -153,7 +153,7 @@ class ArgsManager {
          * @returns {Boolean} true if the arg is a Parameter, false otherwise
          */
         isParameter(arg) {
-            return !!arg.match(/^-[a-z]*$/g);
+            return !!arg.match(/^-[(:?a-z)]{1}[(:?a-z)|-]*$/g);
         }
     
         /**

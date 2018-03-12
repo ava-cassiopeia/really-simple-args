@@ -23,16 +23,19 @@ describe("ArgsManager", function() {
 
     describe(".isParameter()", function() {
         it("should return true for valid parameters (-param-name)", function() {
-            assert.equal(args.isParameter("-f"), true);
-            assert.equal(args.isParameter("-foobar"), true);
-            assert.equal(args.isParameter("-foo-bar"), true);
+            const cases = ["-f", "-foobar", "-foo-bar"];
+
+            cases.forEach((value, index) => {
+                assert.equal(args.isParameter(value), true, `Did not return true for ${value}`);
+            });
         });
 
         it("should return false for invalid parameters", function() {
-            assert.equal(args.isParameter("a"), false);
-            assert.equal(args.isParameter("a-b"), false);
-            assert.equal(args.isParameter("--a"), false);
-            assert.equal(args.isParameter("--foobar"),false);
+            const cases = ["a", "a-b", "--a", "--foobar"];
+
+            cases.forEach((value, index) => {
+                assert.equal(args.isParameter(value), false, `Did not return false for ${value}`);
+            });
         });
     });
 });
