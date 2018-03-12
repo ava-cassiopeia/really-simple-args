@@ -3,8 +3,8 @@
  */
 class ArgsManager {
     
-        constructor() {
-            this.argsArray = process.argv;
+        constructor(argsArray = process.argv) {
+            this.argsArray = argsArray;
             this.flags = {};
             this.parameters = {};
             this.floatingArgs = [];
