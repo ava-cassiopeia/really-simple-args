@@ -18,6 +18,8 @@ arguments for your command line tool.
     - [Determine if Flag Exists](#determine-if-flag-exists)
     - [Determine if Parameter Exists](#determine-if-parameter-exists)
     - [Get Parameter Value](#get-parameter-value)
+    - [Determine if Shorthand Exists](#determine-if-shorthand-exists)
+    - [Determine if Shorthand is Being Used](#determine-if-shorthand-is-being-used)
 
 ## Installation
 
