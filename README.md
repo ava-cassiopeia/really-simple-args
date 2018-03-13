@@ -1,6 +1,7 @@
 # Really Simple Args
 
 [![npm version](https://badge.fury.io/js/really-simple-args.svg)](https://badge.fury.io/js/really-simple-args)
+[![Build Status](https://travis-ci.org/aeolingamenfel/really-simple-args.svg?branch=master)](https://travis-ci.org/aeolingamenfel/really-simple-args)
 
 NPM/Node CommonJS module for automatically sorting and managing command-line 
 arguments for your command line tool.
@@ -9,20 +10,21 @@ arguments for your command line tool.
 
   - [Installation](#installation)
   - [Simple Usage](#simple-usage)
+  - [Concepts](#concepts)
   - [Usage](#usage)
+    - [Register Shorthands](#register-shorthands)
     - [Get Argument by Index](#get-argument-by-index)
     - [Get Amount of Arguments](#get-amount-of-arguments)
     - [Determine if Flag Exists](#determine-if-flag-exists)
     - [Determine if Parameter Exists](#determine-if-parameter-exists)
     - [Get Parameter Value](#get-parameter-value)
-  - [Argument vs Parameter vs Flag](#argument-vs-parameter-vs-flag)
 
 ## Installation
 
 To install, simply run:
 
 ```CLI
-npm i really-simple-args
+npm i --save really-simple-args
 ```
 
 ## Simple Usage
@@ -44,6 +46,96 @@ if(args.hasParameter("p")) {
 }
 ```
 
+## Concepts
+
+This repository, and by extension the `really-simple-args` tool, use the terms
+Argument, Parameter, Flag, and Shorthand. See below for how that is defined for
+this project, to avoid any confusion.
+
+### Parameter
+
+Anything that starts with a single `-` character, and is followed by some value.
+
+*Example:*
+
+```
+my-cli-tool -u root
+```
+
+In this case, `u` is a parameter, and its value is the string `root`. 
+
+### Flag
+
+Anything that starts with two `-` characters. Does not have any associated 
+value.
+
+*Example:*
+
+```
+my-cli-tool --foobar --my-flag
+```
+
+In this case, both `foobar` and `my-flag` are flags.
+
+### Argument
+
+Anything that isn't a parameter, flag, or shorthand, and isn't the value of a
+parameter.
+
+*Example:*
+
+```
+my-cli-tool --foobar -a b --baz my-parameter
+```
+
+In thiscase, neither `foobar`, `baz`, `a`, *or* `b` are considered parameters
+by `really-simple-args`. Only `my-parameter` is a parameter, and would be in 
+parameter slot `0`. 
+
+### Shorthand
+
+A shorthand is a single character argument. It can either appear solo with a `-`
+preceding it, or shorthands can be batched together, any number of them together
+in one sequence with a `-` before it.
+
+In addition, shorthands must be registered with this tool in order to be 
+recognized, to avoid shorthands overlapping parameters. Shorthands can also 
+represent other parameters or flags. See the [Usage](#usage) section for more
+information on how to register shorthands.
+
+*Example:*
+
+Let's assume that you have previously registered the shorthands `a` and `c`,
+and your CLI tool was called like this:
+
+```
+my-cli-tool --foo -ac baz
+```
+
+In a normal case, `ac` would be an available parameter, with the value of `baz`.
+However, in this case, because you have registered those shorthands, the
+shorthands `a` and `c` would both be present, and `baz` would become an argument
+in argument index `0`.
+
+It's also worth noting that these shorthands have been batched together, but the
+same exact result would be true if specified like:
+
+```
+my-cli-tool --foo -a -c baz
+```
+
+Or like this:
+
+```
+my-cli-tool -a --foo baz -c
+```
+
+Finally, since shorthands *can* (but do not have to) represent flags and 
+parameters, it's possible that the shorthand `a` could represent flag `foo`,
+which would then cause `really-simple-args` to throw an error, because the `foo`
+flag is present twice. See the [Usage](#usage) section for more information on
+registering and using shorthands.
+
 ## Usage
 
 First, add it to your source file that you want to read arguments from:
@@ -60,6 +152,80 @@ The args manager *will* throw an error if multiple flags or arguments exist.
 
 Unless otherwise specified below, all of these methods can be called off of the 
 `args` object, or whatever you choose to name it.
+
+### Register Shorthands
+
+When constructing `really-simple-args`, you can optionally pass an array of
+shorthands as the first parameter:
+
+```Javascript
+const args = require("really-simple-args")([/* shorthands go here */]);
+
+// Or if you want a more legible syntax
+const parseArgs = require("really-simple-args");
+
+const args = parseArgs([
+    /* shorthands go here */
+]);
+```
+
+Shorthands are single character special arguments that can optionally represent
+flags or parameters.
+
+To specify a shorthand that doesn't represent any other arguments, just pass it
+as a string:
+
+```Javascript
+const args = require("really-simple-args")(["a", "b"]);
+
+// Assuming the CLI was called like: my-cli -ab
+
+args.shorthandIsPresent("a"); // true
+args.shorthandIsPresent("b"); // true
+```
+
+In the case above, the shorthands `a` and `b` are now registered.
+
+You can also make shorthands represent certain flags or parameters by passing
+a configuration object instead of a string for a shorthand:
+
+```Javascript
+const args = require("really-simple-args")([
+    "a",
+    {
+        name: "b",
+        shortFor: [
+            "--foo",
+            ["-bar", "param0"]
+        ]
+    }
+]);
+
+// Assuming the CLI was called like: my-cli -ab
+
+args.shorthandIsPresent("a"); // true
+args.shorthandIsPresent("b"); // true
+args.hasFlag("foo"); // true
+args.hasParameter("bar"); // true
+args.getParameter("bar"); // "param0"
+```
+
+In the above, the shorthands `a` and `b` are still present, similar to the last
+example. However, in this example, the shorthand `b` is short for the `foo`
+flag. This means that whenever the `b` shorthand is present, it will act as both
+a shorthand and a flag. If you were to check to see if the `foo` flag was
+present when the `b` shorthand was specified, it would return true.
+
+In the same vein, the parameter `bar` is also present with the value of `param0`
+whenever the shorthand `b` is present.
+
+As you may have noticed, the `shortFor` property is an array. A shorthand can 
+have any number of flags or parameters that it represents.
+
+**Warning:** Flags and parameters specified for a shorthand function exactly as
+though the user specified those flags/parameters where the shorthand is. This 
+means that if the flag that a shorthand represents is present again later in the
+arguments, this tool will throw an error.
 
 ### Get Argument by Index
 
@@ -118,47 +284,25 @@ Returns the value of the specified parameter (by name) if it exists, or `null`
 if it does not. The name of the parameter should be the parameter minus the `-`
 at the beginning.
 
-## Argument vs Parameter vs Flag
-
-This repository, and by extension the `really-simple-args` tool, use the terms
-Argument, Parameter, and Flag. See below for how that is defined for this
-project, to avoid any confusion.
-
-### Parameter
-
-Anything that starts with a single `-` character, and is followed by some value.
-
-*Example:*
+### Determine If Shorthand Exists
 
 ```
-my-cli-tool -u root
+hasShorthand(name: String): Boolean
 ```
 
-In this case, `u` is a parameter, and its value is the string `root`. 
+Returns true if the given shorthand (without `-` prefix) has been
+**registered**. This does not indicate whether or not the CLI has been called
+with the given shorthand.
 
-### Flag
-
-Anything that starts with two `-` characters. Does not have any associated 
-value.
-
-*Example:*
+### Determine If Shorthand Is Being Used
 
 ```
-my-cli-tool --foobar --my-flag
+shorthandIsPresent(name: String): Boolean
 ```
 
-In this case, both `foobar` and `my-flag` are flags.
+Returns true if the given shorthand (without the `-` prefix) is present in the 
+arguments of the CLI tool, either in shorted form (`-ab`) or in spaced form
+(`-a -b`).
 
-### Argument
-
-Anything that isn't a parameter or flag, and isn't the value of a parameter.
-
-*Example:*
-
-```
-my-cli-tool --foobar -a b --baz my-parameter
-```
-
-In thiscase, neither `foobar`, `baz`, `a`, *or* `b` are considered parameters
-by `really-simple-args`. Only `my-parameter` is a parameter, and would be in 
-parameter slot `0`. 
+Keep in mind that if a shorthand proxies flags or parameters, you can find
+whether those exist using their appropriate methods.
