@@ -1,15 +1,45 @@
+const Shorthand = require("./Shorthand");
+
 /**
  * Class for managing and reporting arguments.
  */
 class ArgsManager {
     
-        constructor(argsArray = process.argv) {
+        constructor(shorthands = [], argsArray = process.argv) {
+            this.shorthands = this.parseShorthands(shorthands);
             this.argsArray = argsArray;
             this.flags = {};
             this.parameters = {};
             this.floatingArgs = [];
     
             this.sort();
+        }
+
+        /**
+         * Parses a shorthands configuration object and returns a valid array
+         * of shorthands.
+         * 
+         * @param {Array<Object>} rawShorthands The shorthands configuration
+         *  array.
+         * @returns {Array<Shorthand>}
+         */
+        parseShorthands(rawShorthands) {
+            let output = [];
+            let shorthand = null;
+            let sho = null;
+
+            for(let x = 0; x < rawShorthands.length; x++) {
+                shorthand = rawShorthands[x];
+                sho = new Shorthand(shorthand);
+
+                if(output[sho.name]) {
+                    throw new Error(`The shorthand ${sho.name} has already been registered. You cannot register multiple shorthands with the same name.`);
+                }
+
+                output[sho.name] = sho;
+            }
+
+            return output;
         }
     
         /**
@@ -161,10 +191,62 @@ class ArgsManager {
          *
          * @param {String} arg the argument to be checked
          *
-         * @param {Boolean} true if the arg is a Flag, false otherwise
+         * @returns {Boolean} true if the arg is a Flag, false otherwise
          */
         isFlag(arg) {
             return !!arg.match(/^--[(a-z)|-]*$/g);
+        }
+
+        /**
+         * Determines whether the specified string is a Shorthand.
+         * 
+         * @param {String} arg The argument to be checked
+         * @returns {Boolean} True if the argument is a valid Shorthand, false
+         *  otherwise.
+         */
+        isShorthand(arg) {
+            // First, we need to validate that this is a valid shorthand
+            // syntax-wise. Shorthands are equivalent in syntax to parameters,
+            // so we can just use that method.
+            if(!this.isParameter(arg)) {
+                return false;
+            }
+
+            // If we got this far, we should strip off the trailing "-".
+            arg = arg.replace(new RegExp("^-"), "");
+
+            // If the arg is exactly one character, then it's either just one 
+            // shorthand, or not a shorthand. So, loop through all known
+            // shorthands to see if we have a match.
+            if(arg.length == 1) {
+                return this.hasShorthand(arg);
+            }
+
+            // Finally, if the argument is more than 1 character long, it may be
+            // multiple shorthands stacked together. In this case, try to find
+            // a valid shorthand for _every_ character. If this does not succeed
+            // it is not a shorthand.
+            let char = null;
+
+            for(let x = 0; x < arg.length; x++) {
+                char = arg[x];
+
+                if(!this.hasShorthand(char)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /**
+         * Determines whether the specified shorthand has been registered.
+         * 
+         * @param {String} name
+         * @returns {Boolean}
+         */
+        hasShorthand(name) {
+            return !!this.shorthands[name];
         }
     
     }
