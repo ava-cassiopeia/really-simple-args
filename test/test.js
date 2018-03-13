@@ -3,7 +3,77 @@ const ArgsManager = require("./../src/ArgsManager");
 const Shorthand = require("./../src/Shorthand");
 
 describe("ArgsManager", function() {
-    const args = new ArgsManager([]);
+    const args = new ArgsManager([
+        "a",
+        "b",
+        {
+            name: "c",
+            shortFor: [
+                "--foo",
+                "--bar",
+                ["-d", "testing"]
+            ]
+        },
+        "e"
+    ], [
+        "", "",
+        "-ac",
+        "arg0",
+        "--baz",
+        "-param",
+        "param0",
+        "arg1",
+        "--foobaz"
+    ]);
+
+    it("should have correct prescense for shorthanded flags", function() {
+        assert.equal(args.hasFlag("foo"), true, `Did not return true for flag "foo"`);
+        assert.equal(args.hasFlag("bar"), true, `Did not return true for flag "bar"`);
+    });
+
+    it("should have correct prescense for shorthanded args", function() {
+        assert.equal(args.hasParameter("d"), true, `Did not return true for parameter "d"`);
+        assert.equal(args.getParameter("d"), "testing", `Did not return "testing" for parameter "d"`);
+    });
+
+    it("should have correct prescense for flags", function() {
+        assert.equal(args.hasFlag("baz"), true, `Did not have "baz" flag.`);
+        assert.equal(args.hasFlag("foobaz"), true, `Did not have "foobaz" flag.`);
+        assert.equal(args.hasFlag("foobarbaz"), false, `Had "foobarbaz" flag when it shouldn't have.`);
+    });
+
+    it("should have correct prescense for parameters", function() {
+        assert.equal(args.hasParameter("param"), true, `Did not have "param" parameter.`);
+        assert.equal(args.getParameter("param"), "param0", `Did not return correct parameter value for "param" parameter.`);
+        assert.equal(args.hasParameter("param1"), false, `Had "param1" parameter when it shouldn't have.`);
+    });
+
+    it("should have correct length of arguments", function() {
+        assert.equal(args.getAmountOfArguments(), 2);
+    });
+
+    it("should have arguments in correct indexes", function() {
+        assert.equal(args.getArgumentByIndex(0), "arg0");
+        assert.equal(args.getArgumentByIndex(1), "arg1");
+    });
+
+    describe(".shorthandIsPresent()", function() {
+        it("should return true for present shorthands", function() {
+            const cases = ["a", "c"];
+
+            cases.forEach((value, index) => {
+                assert.equal(args.shorthandIsPresent(value), true, `Did not return true for shorthand ${value}`);
+            });
+        });
+
+        it("should return false for non-present shorthands", function() {
+            const cases = ["b", "e"];
+
+            cases.forEach((value, index) => {
+                assert.equal(args.shorthandIsPresent(value), false, `Did not return false for shorthand ${value}`);
+            });
+        });
+    });
 
     describe(".isFlag()", function() {
         it("should return true for valid flags (--flagname)", function() {
@@ -41,32 +111,19 @@ describe("ArgsManager", function() {
     });
 
     describe(".isShorthand()", function() {
-        const sargs = new ArgsManager([
-            "a",
-            "b",
-            {
-                name: "c",
-                shortFor: [
-                    "--foo",
-                    "--bar",
-                    ["-d", "testing"]
-                ]
-            }
-        ], []);
-
         it("should return true for valid shorthands", function() {
             const cases = ["-a", "-b", "-c", "-ab", "-ac", "-bc", "-abc"];
 
             cases.forEach((value, index) => {
-                assert.equal(sargs.isShorthand(value), true, `Did not return true for shorthand ${value}`);
+                assert.equal(args.isShorthand(value), true, `Did not return true for shorthand ${value}`);
             });
         });
 
         it("should return false for invalid shorthands", function() {
-            const cases = ["-d", "-abe", "-fa", "--a", "--b--a"];
+            const cases = ["-d", "-abz", "-fa", "--a", "--b--a"];
 
             cases.forEach((value, index) => {
-                assert.equal(sargs.isShorthand(value), false, `Did not return false for shorthand ${value}`);
+                assert.equal(args.isShorthand(value), false, `Did not return false for shorthand ${value}`);
             });
         });
     });

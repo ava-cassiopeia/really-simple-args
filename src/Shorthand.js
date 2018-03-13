@@ -1,9 +1,26 @@
+/// <reference path="ArgsManager.js" />
+
+/**
+ * @typedef {Object} ShortForConfig
+ * @prop {String} type
+ * @prop {String} name
+ * @prop {String} rawParam
+ * @prop {String=} value
+ */
+
+/**
+ * Class representing an existing shorthand argument.
+ * 
+ * @class
+ */
 class Shorthand {
 
     /**
      * @param {String|Object} config The configuration object for a shorthand.
      */
     constructor(config) {
+        this.isPresent = false;
+
         if(typeof config === "string") {
             this.name = config;
             this.shortFor = [];
@@ -18,11 +35,34 @@ class Shorthand {
     }
 
     /**
+     * Sets the prescense state of this shorthand to true, and goes through the
+     * short for list to update the specified args manager.
+     * 
+     * @param {ArgsManager} manager
+     */
+    handlePrescense(manager) {
+        this.isPresent = true;
+
+        this.shortFor.forEach((config, index) => {
+            switch(config.type) {
+                case "flag":
+                    manager.handleFlag(config.rawParam);
+                    break;
+                case "parameter":
+                    manager.handleParameter(config.rawParam, -2, config.value);
+                    break;
+                default:
+                    throw new Error(`Unknown short for config type: ${config.type}`);
+            }
+        });
+    }
+
+    /**
      * Takes a raw configuration list of short for configurations and turns it
      * into a working configuration object.
      * 
      * @param {Array<Array<String>|String>} raw The raw short for array.
-     * @returns {Array<Object>}
+     * @returns {Array<ShortForConfig>}
      */
     parseShortForArray(raw) {
         let output = [];
@@ -35,12 +75,14 @@ class Shorthand {
                 output[x] = {
                     type: "flag",
                     name: this.stripDashesPrefix(curr),
+                    rawParam: curr,
                     value: null
                 };
             } else {
                 output[x] = {
                     type: "parameter",
                     name: this.stripDashesPrefix(curr[0]),
+                    rawParam: curr[0],
                     value: curr[1]
                 };
             }
