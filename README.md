@@ -48,6 +48,24 @@ if(args.hasParameter("p")) {
 }
 ```
 
+or in Typescript:
+
+```Typescript
+import parseArgs from "really-simple-args";
+
+const args = parseArgs();
+
+if(args.hasFlag("my-flag")) {
+    // do something when --my-flag is passed
+}
+
+if(args.hasParameter("p")) {
+    const pValue = args.getParameter("p");
+
+    // do something with pValue, which was passed with -p
+}
+```
+
 ## Concepts
 
 This repository, and by extension the `really-simple-args` tool, use the terms
